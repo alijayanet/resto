@@ -5,8 +5,14 @@
       <!-- Brand Logo & Name -->
       <div class="flex items-center">
         <a href="/" class="flex items-center space-x-3 group">
-          <div class="bg-gradient-to-tr from-brand-500 to-accent-500 p-2 rounded-xl shadow-lg shadow-brand-500/20 group-hover:scale-105 transition-transform duration-300">
-            <i class="fa-solid fa-shrimp text-white text-xl sm:text-2xl"></i>
+          <div class="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center bg-slate-800/40 p-1 group-hover:scale-105 transition-transform duration-300 border border-slate-700/30">
+            <% if (typeof settings !== 'undefined' && settings.resto_logo && settings.resto_logo !== '/images/default-logo.png') { %>
+              <img src="<%= settings.resto_logo %>" alt="Logo" class="w-full h-full object-contain" />
+            <% } else { %>
+              <div class="bg-gradient-to-tr from-brand-500 to-accent-500 w-full h-full rounded-lg flex items-center justify-center">
+                <i class="fa-solid fa-shrimp text-white text-lg"></i>
+              </div>
+            <% } %>
           </div>
           <span class="font-extrabold text-xl sm:text-2xl bg-gradient-to-r from-white via-slate-100 to-brand-100 bg-clip-text text-transparent tracking-wide">
             <%= settings.resto_name || 'Dermaga Seafood' %>

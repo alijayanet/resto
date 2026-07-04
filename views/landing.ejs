@@ -157,8 +157,14 @@
             <div class="absolute inset-0 bg-gradient-to-tr from-brand-500 to-accent-500 rounded-full blur-2xl opacity-20 animate-pulse"></div>
             <!-- Main Hero Boxed Logo -->
             <div class="relative glass-card p-8 rounded-3xl border border-slate-700/40 shadow-2xl flex flex-col items-center text-center max-w-sm">
-              <div class="bg-gradient-to-tr from-brand-600 to-accent-500 w-24 h-24 rounded-2xl flex items-center justify-center shadow-xl shadow-brand-500/10 mb-6">
-                <i class="fa-solid fa-fish text-white text-5xl"></i>
+              <div class="w-24 h-24 rounded-2xl overflow-hidden flex items-center justify-center bg-slate-800/60 p-2 shadow-xl shadow-brand-500/10 mb-6 border border-slate-700/40">
+                <% if (settings.resto_logo && settings.resto_logo !== '/images/default-logo.png') { %>
+                  <img src="<%= settings.resto_logo %>" alt="Logo Resto" class="w-full h-full object-contain" />
+                <% } else { %>
+                  <div class="bg-gradient-to-tr from-brand-600 to-accent-500 w-full h-full rounded-xl flex items-center justify-center">
+                    <i class="fa-solid fa-fish text-white text-4xl"></i>
+                  </div>
+                <% } %>
               </div>
               <h3 class="text-white text-2xl font-black mb-2"><%= settings.resto_name || 'Dermaga Seafood' %></h3>
               <p class="text-slate-400 text-sm mb-4">Cita rasa laut sesungguhnya, diproses secara higienis dan disajikan hangat.</p>
