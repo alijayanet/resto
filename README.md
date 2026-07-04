@@ -79,7 +79,18 @@ Pastikan perangkat Anda telah menginstal **Node.js** (Minimal v16, direkomendasi
    npm install
    ```
 
-3. **Inisialisasi Database (Seeding)**
+3. **Konfigurasi Environment (.env)**
+   Salin file `env.example.txt` menjadi `.env` dan sesuaikan konfigurasinya (seperti nomor PORT dan kunci SESSION_SECRET):
+   * **Windows (PowerShell / Command Prompt)**:
+     ```cmd
+     copy env.example.txt .env
+     ```
+   * **Linux / macOS (Terminal)**:
+     ```bash
+     cp env.example.txt .env
+     ```
+
+4. **Inisialisasi Database (Seeding)**
    Gunakan perintah ini untuk membuat tabel database SQLite awal, mengisi sampel menu masakan, pengaturan awal, serta akun kasir/waiter default:
    ```bash
    npm run seed
