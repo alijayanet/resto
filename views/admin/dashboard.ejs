@@ -1,0 +1,548 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<div 
+  x-data="{ 
+    orders: <%= JSON.stringify(orders) %>,
+    activeStatusFilter: '<%= activeFilters.status %>',
+    activeTypeFilter: '<%= activeFilters.type %>',
+    qrisModalOpen: false,
+    qrisOrder: null,
+    qrisQrUrl: '',
+    qrisLoading: false,
+    qrisError: '',
+    
+    async openQrisModal(orderId) {
+      this.qrisModalOpen = true;
+      this.qrisLoading = true;
+      this.qrisError = '';
+      this.qrisOrder = null;
+      this.qrisQrUrl = '';
+      
+      try {
+        const res = await fetch('/api/qris/generate/' + orderId);
+        const data = await res.json();
+        if (data.success) {
+          this.qrisOrder = data.order;
+          this.qrisQrUrl = data.qrisQrUrl;
+        } else {
+          this.qrisError = data.error;
+        }
+      } catch (err) {
+        this.qrisError = 'Gagal memuat QRIS dari server.';
+      } finally {
+        this.qrisLoading = false;
+      }
+    },
+    
+    get filteredOrders() {
+      return this.orders.filter(order => {
+        const matchStatus = !this.activeStatusFilter || order.status === this.activeStatusFilter;
+        const matchType = !this.activeTypeFilter || order.type === this.activeTypeFilter;
+        return matchStatus && matchType;
+      });
+    },
+
+    async pollOrders() {
+      try {
+        const res = await fetch('/api/orders?role=admin');
+        const data = await res.json();
+        if (data.success) {
+          this.orders = data.orders;
+        }
+      } catch (err) {
+        console.error('Failed to poll orders:', err);
+      }
+    },
+
+    init() {
+      // Auto-poll orders every 10 seconds
+      setInterval(() => this.pollOrders(), 10000);
+    }
+  }"
+  class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow space-y-8"
+>
+
+  <!-- Title Section -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div>
+      <h2 class="text-3xl font-extrabold text-white">Dashboard Admin</h2>
+      <p class="text-slate-400 text-sm mt-1">Pantau pesanan masuk secara real-time dan kelola penjualan restoran Anda.</p>
+    </div>
+    <div class="flex items-center gap-2 w-full md:w-auto">
+      <a 
+        href="/"
+        class="flex-1 md:flex-none bg-brand-600 hover:bg-brand-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition shadow-lg shadow-brand-500/20 cursor-pointer"
+      >
+        <i class="fa-solid fa-cart-plus"></i> Input Pesanan (Katalog)
+      </a>
+      
+      <button 
+        @click="pollOrders()"
+        class="flex-1 md:flex-none bg-dark-800 hover:bg-dark-700 text-slate-300 px-4 py-2.5 rounded-xl text-sm border border-slate-700/60 font-semibold flex items-center justify-center gap-2 transition cursor-pointer"
+      >
+        <i class="fa-solid fa-arrows-rotate animate-spin" style="animation-duration: 4s;"></i> Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <%- include('../partials/alerts') %>
+
+  <!-- Date Filter Form -->
+  <div class="glass-card p-4 rounded-2xl border border-slate-800/80">
+    <form action="/admin/dashboard" method="GET" class="flex flex-col lg:flex-row items-end gap-4" x-data="{ datePreset: '<%= activeFilters.datePreset %>' }">
+      
+      <!-- Date Preset Selector -->
+      <div class="w-full lg:w-48">
+        <label for="datePreset" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5"><i class="fa-solid fa-calendar-days text-brand-500 mr-1.5"></i>Periode Tanggal</label>
+        <select 
+          name="datePreset" 
+          id="datePreset" 
+          x-model="datePreset"
+          class="w-full bg-dark-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-500 font-bold"
+        >
+          <option value="today">Hari Ini</option>
+          <option value="month">Bulan Ini</option>
+          <option value="all">Semua Waktu</option>
+          <option value="custom">Pilih Tanggal (Kustom)</option>
+        </select>
+      </div>
+
+      <!-- Custom Start Date -->
+      <div class="w-full lg:w-48" x-show="datePreset === 'custom'" x-transition style="display: none;">
+        <label for="startDate" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Dari Tanggal</label>
+        <input 
+          type="date" 
+          name="startDate" 
+          id="startDate"
+          value="<%= activeFilters.startDate %>"
+          class="w-full bg-dark-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-500 font-bold"
+        />
+      </div>
+
+      <!-- Custom End Date -->
+      <div class="w-full lg:w-48" x-show="datePreset === 'custom'" x-transition style="display: none;">
+        <label for="endDate" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Sampai Tanggal</label>
+        <input 
+          type="date" 
+          name="endDate" 
+          id="endDate"
+          value="<%= activeFilters.endDate %>"
+          class="w-full bg-dark-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-500 font-bold"
+        />
+      </div>
+
+      <!-- Hidden Status/Type inputs to preserve active filter parameters -->
+      <input type="hidden" name="status" value="<%= activeFilters.status %>" />
+      <input type="hidden" name="type" value="<%= activeFilters.type %>" />
+
+      <!-- Submit Button -->
+      <div class="w-full lg:w-auto">
+        <button 
+          type="submit" 
+          class="w-full lg:w-auto bg-brand-600 hover:bg-brand-500 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-brand-500/20 transition flex items-center justify-center gap-1.5 cursor-pointer"
+        >
+          <i class="fa-solid fa-filter"></i> Terapkan Filter
+        </button>
+      </div>
+
+      <!-- Active Preset Badge Indicator -->
+      <div class="hidden lg:block ml-auto text-xs text-slate-400 font-semibold italic">
+        <% if (activeFilters.datePreset === 'today') { %>
+          Menampilkan data <span class="text-brand-400 font-bold">Hari Ini</span>
+        <% } else if (activeFilters.datePreset === 'month') { %>
+          Menampilkan data <span class="text-brand-400 font-bold">Bulan Ini</span>
+        <% } else if (activeFilters.datePreset === 'all') { %>
+          Menampilkan data <span class="text-brand-400 font-bold">Semua Waktu</span>
+        <% } else { %>
+          Menampilkan kustom dari <span class="text-brand-400 font-bold"><%= activeFilters.startDate %></span> s/d <span class="text-brand-400 font-bold"><%= activeFilters.endDate %></span>
+        <% } %>
+      </div>
+    </form>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+    <!-- Stat 1: Revenue -->
+    <div class="glass-card p-5 rounded-2xl border border-slate-800/80 flex items-center gap-4">
+      <div class="bg-emerald-500/10 text-emerald-400 w-12 h-12 rounded-xl flex items-center justify-center text-xl">
+        <i class="fa-solid fa-money-bill-wave"></i>
+      </div>
+      <div>
+        <p class="text-slate-400 text-xs font-semibold">Pendapatan Lunas</p>
+        <p class="text-white text-lg font-extrabold mt-0.5">Rp <%= stats.revenue.toLocaleString('id-ID') %></p>
+      </div>
+    </div>
+    
+    <!-- Stat 2: Total Orders -->
+    <div class="glass-card p-5 rounded-2xl border border-slate-800/80 flex items-center gap-4">
+      <div class="bg-brand-500/10 text-brand-400 w-12 h-12 rounded-xl flex items-center justify-center text-xl">
+        <i class="fa-solid fa-receipt"></i>
+      </div>
+      <div>
+        <p class="text-slate-400 text-xs font-semibold">Total Pesanan</p>
+        <p class="text-white text-lg font-extrabold mt-0.5"><%= stats.total %></p>
+      </div>
+    </div>
+
+    <!-- Stat 3: Pending -->
+    <div class="glass-card p-5 rounded-2xl border border-slate-800/80 flex items-center gap-4">
+      <div class="bg-red-500/10 text-red-400 w-12 h-12 rounded-xl flex items-center justify-center text-xl">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+      </div>
+      <div>
+        <p class="text-slate-400 text-xs font-semibold">Menunggu (Pending)</p>
+        <p class="text-white text-lg font-extrabold mt-0.5"><%= stats.pending %></p>
+      </div>
+    </div>
+
+    <!-- Stat 4: Processing -->
+    <div class="glass-card p-5 rounded-2xl border border-slate-800/80 flex items-center gap-4">
+      <div class="bg-amber-500/10 text-amber-400 w-12 h-12 rounded-xl flex items-center justify-center text-xl">
+        <i class="fa-solid fa-fire-burner"></i>
+      </div>
+      <div>
+        <p class="text-slate-400 text-xs font-semibold">Diproses (Dapur)</p>
+        <p class="text-white text-lg font-extrabold mt-0.5"><%= stats.processing %></p>
+      </div>
+    </div>
+
+    <!-- Stat 5: Completed -->
+    <div class="glass-card p-5 rounded-2xl border border-slate-800/80 flex items-center gap-4">
+      <div class="bg-indigo-500/10 text-indigo-400 w-12 h-12 rounded-xl flex items-center justify-center text-xl">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <div>
+        <p class="text-slate-400 text-xs font-semibold">Selesai Masak</p>
+        <p class="text-white text-lg font-extrabold mt-0.5"><%= stats.completed %></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters & List Section -->
+  <div class="space-y-4">
+    <!-- Filters Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-dark-800 p-4 rounded-2xl border border-slate-800">
+      <div class="flex items-center gap-3 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0 scrollbar-none">
+        <span class="text-slate-400 text-xs font-bold uppercase tracking-wider whitespace-nowrap">Filter Status:</span>
+        <button 
+          @click="activeStatusFilter = ''" 
+          :class="!activeStatusFilter ? 'bg-brand-600 text-white' : 'bg-dark-900 text-slate-400 border border-slate-700/40 hover:bg-dark-700'"
+          class="px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer"
+        >Semua</button>
+        <button 
+          @click="activeStatusFilter = 'pending'" 
+          :class="activeStatusFilter === 'pending' ? 'bg-red-600 text-white' : 'bg-dark-900 text-slate-400 border border-slate-700/40 hover:bg-dark-700'"
+          class="px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer"
+        >Pending</button>
+        <button 
+          @click="activeStatusFilter = 'processing'" 
+          :class="activeStatusFilter === 'processing' ? 'bg-amber-600 text-white' : 'bg-dark-900 text-slate-400 border border-slate-700/40 hover:bg-dark-700'"
+          class="px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer"
+        >Diproses</button>
+        <button 
+          @click="activeStatusFilter = 'completed'" 
+          :class="activeStatusFilter === 'completed' ? 'bg-indigo-600 text-white' : 'bg-dark-900 text-slate-400 border border-slate-700/40 hover:bg-dark-700'"
+          class="px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer"
+        >Selesai</button>
+        <button 
+          @click="activeStatusFilter = 'paid'" 
+          :class="activeStatusFilter === 'paid' ? 'bg-emerald-600 text-white' : 'bg-dark-900 text-slate-400 border border-slate-700/40 hover:bg-dark-700'"
+          class="px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer"
+        >Lunas (Paid)</button>
+      </div>
+
+      <div class="flex items-center gap-2 w-full sm:w-auto">
+        <span class="text-slate-400 text-xs font-bold uppercase tracking-wider whitespace-nowrap hidden lg:inline">Tipe:</span>
+        <select 
+          x-model="activeTypeFilter"
+          class="w-full sm:w-40 bg-dark-900 border border-slate-700 text-xs text-white rounded-xl px-3 py-2 focus:outline-none focus:border-brand-500"
+        >
+          <option value="">Semua Tipe</option>
+          <option value="dine-in">Dine-In</option>
+          <option value="delivery">Delivery</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Orders Table/Grid -->
+    <div class="glass-card rounded-2xl overflow-hidden border border-slate-800">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-sm">
+          <thead>
+            <tr class="bg-dark-800 border-b border-slate-800 text-slate-400 text-xs font-semibold uppercase tracking-wider">
+              <th class="px-6 py-4">Order ID</th>
+              <th class="px-6 py-4">Pelanggan</th>
+              <th class="px-6 py-4">Tipe Layanan</th>
+              <th class="px-6 py-4">Detail Meja/Alamat</th>
+              <th class="px-6 py-4">Item Pesanan</th>
+              <th class="px-6 py-4 text-right">Total Bayar</th>
+              <th class="px-6 py-4 text-center">Status</th>
+              <th class="px-6 py-4 text-right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/80">
+            <!-- Row rendering via Alpine.js -->
+            <template x-for="order in filteredOrders" :key="order.id">
+              <tr class="hover:bg-dark-800/30 transition-colors">
+                <!-- Order ID -->
+                <td class="px-6 py-4 font-bold text-white whitespace-nowrap">
+                  #<span x-text="order.id"></span>
+                </td>
+                
+                <!-- Customer Name -->
+                <td class="px-6 py-4 font-medium text-slate-200" x-text="order.customerName"></td>
+                
+                <!-- Type -->
+                <td class="px-6 py-4">
+                  <span 
+                    class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full"
+                    :class="order.type === 'dine-in' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'"
+                    x-text="order.type === 'dine-in' ? 'Dine-In' : 'Delivery'"
+                  ></span>
+                </td>
+
+                <!-- Details -->
+                <td class="px-6 py-4 text-xs text-slate-300 max-w-[200px] truncate" :title="order.type === 'dine-in' ? order.tableNumber : order.address">
+                  <span x-text="order.type === 'dine-in' ? order.tableNumber : order.address"></span>
+                </td>
+
+                <!-- Items Details -->
+                <td class="px-6 py-4 text-xs text-slate-300">
+                  <ul class="space-y-1 max-w-[220px]">
+                    <template x-for="item in order.items" :key="item.id">
+                      <li>
+                        <span class="font-bold text-slate-400" x-text="item.quantity + (item.menu.priceType === 'kg' ? ' Kg' : ' Pcs')"></span> 
+                        <span x-text="item.menu.name"></span>
+                        <span x-show="item.notes" class="block text-[10px] text-slate-500 italic" x-text="'Catatan: ' + item.notes"></span>
+                      </li>
+                    </template>
+                  </ul>
+                </td>
+
+                <!-- Total Price -->
+                <td class="px-6 py-4 text-right font-black text-brand-500 whitespace-nowrap">
+                  Rp <span x-text="parseFloat(order.totalPrice).toLocaleString('id-ID')"></span>
+                </td>
+
+                <!-- Status Badge -->
+                <td class="px-6 py-4 text-center whitespace-nowrap">
+                  <span 
+                    class="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full border"
+                    :class="{
+                      'bg-red-500/15 text-red-400 border-red-500/35': order.status === 'pending',
+                      'bg-amber-500/15 text-amber-400 border-amber-500/35': order.status === 'processing',
+                      'bg-indigo-500/15 text-indigo-400 border-indigo-500/35': order.status === 'completed',
+                      'bg-emerald-500/15 text-emerald-400 border-emerald-500/35': order.status === 'paid'
+                    }"
+                    x-text="
+                      order.status === 'pending' ? 'PENDING' :
+                      order.status === 'processing' ? 'DIPROSES' :
+                      order.status === 'completed' ? 'SELESAI' : 'LUNAS'
+                    "
+                  ></span>
+                </td>
+
+                <!-- Actions -->
+                <td class="px-6 py-4 text-right whitespace-nowrap">
+                  <div class="inline-flex gap-2">
+                    <!-- Dynamic QRIS Button -->
+                    <% if (settings.qris_active === 'true') { %>
+                      <template x-if="order.status !== 'paid'">
+                        <button 
+                          type="button" 
+                          @click="openQrisModal(order.id)" 
+                          class="bg-blue-650 hover:bg-blue-550 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1 shadow-lg shadow-blue-650/15"
+                        >
+                          <i class="fa-solid fa-qrcode"></i> QRIS
+                        </button>
+                      </template>
+                    <% } %>
+
+                    <!-- Update status form -->
+                    <form :action="'/orders/' + order.id + '/status'" method="POST" class="inline">
+                      <!-- Progress to next logical status -->
+                      <template x-if="order.status === 'pending'">
+                        <button type="submit" name="status" value="processing" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg transition cursor-pointer">
+                          <i class="fa-solid fa-fire-burner"></i> Proses
+                        </button>
+                      </template>
+                      <template x-if="order.status === 'processing'">
+                        <button type="submit" name="status" value="completed" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg transition cursor-pointer">
+                          <i class="fa-solid fa-check"></i> Selesai
+                        </button>
+                      </template>
+                      <template x-if="order.status === 'completed'">
+                        <button type="submit" name="status" value="paid" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg transition cursor-pointer">
+                          <i class="fa-solid fa-cash-register"></i> Bayar
+                        </button>
+                      </template>
+                    </form>
+
+                    <!-- Delete button -->
+                    <form :action="'/orders/' + order.id + '/delete'" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pesanan ini permanent?')">
+                      <button type="submit" class="bg-dark-900 border border-slate-700/60 hover:bg-red-500/10 text-slate-400 hover:text-red-400 p-1.5 rounded-lg transition cursor-pointer">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            </template>
+
+            <!-- Empty Row State -->
+            <tr x-show="filteredOrders.length === 0">
+              <td colspan="8" class="px-6 py-12 text-center text-slate-500">
+                <i class="fa-solid fa-receipt text-3xl mb-2 text-slate-600"></i>
+                <p class="font-semibold text-sm">Tidak ada pesanan masuk</p>
+                <p class="text-xs mt-1 text-slate-500">Belum ada pesanan yang sesuai dengan filter Anda.</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- QRIS Payment Modal -->
+  <div 
+    x-show="qrisModalOpen" 
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark-950/80 backdrop-blur-sm"
+    x-transition
+    style="display: none;"
+  >
+    <div 
+      @click.away="qrisModalOpen = false"
+      class="bg-dark-900 border border-slate-800 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]"
+    >
+      <!-- Modal Header -->
+      <div class="p-6 border-b border-slate-800 flex justify-between items-center bg-dark-850">
+        <div>
+          <h3 class="text-white font-extrabold text-lg flex items-center gap-2">
+            <i class="fa-solid fa-qrcode text-brand-500"></i> QRIS Pembayaran Dinamis
+          </h3>
+          <p class="text-[10px] text-slate-400 mt-0.5">Scan kode di bawah untuk transaksi lunas otomatis</p>
+        </div>
+        <button 
+          @click="qrisModalOpen = false" 
+          class="text-slate-400 hover:text-white bg-dark-800 hover:bg-dark-750 p-2 rounded-xl transition cursor-pointer"
+        >
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 flex flex-col items-center justify-center space-y-6 overflow-y-auto flex-grow">
+        <!-- Loading State -->
+        <div x-show="qrisLoading" class="py-12 flex flex-col items-center justify-center space-y-3">
+          <i class="fa-solid fa-spinner animate-spin text-brand-500 text-3xl"></i>
+          <p class="text-xs text-slate-400 font-semibold">Menghasilkan kode QRIS...</p>
+        </div>
+
+        <!-- Error State -->
+        <div x-show="qrisError" class="w-full text-center py-6 space-y-3">
+          <div class="w-12 h-12 bg-red-500/10 text-red-400 rounded-full flex items-center justify-center mx-auto text-xl">
+            <i class="fa-solid fa-circle-exclamation"></i>
+          </div>
+          <p class="text-sm text-slate-300 font-medium" x-text="qrisError"></p>
+          <button 
+            @click="qrisModalOpen = false" 
+            class="bg-dark-800 hover:bg-dark-700 text-slate-300 px-4 py-2 rounded-xl text-xs font-semibold border border-slate-700/50 cursor-pointer"
+          >
+            Tutup
+          </button>
+        </div>
+
+        <!-- QRIS Content -->
+        <div x-show="!qrisLoading && !qrisError && qrisOrder" class="w-full flex flex-col items-center space-y-4" x-data="{ cashReceived: 0 }">
+          <!-- Order Metadata -->
+          <div class="text-center w-full bg-dark-950/40 p-4 rounded-2xl border border-slate-850">
+            <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-400 border border-brand-500/20" x-text="qrisOrder ? (qrisOrder.type === 'dine-in' ? 'Dine-In' : 'Delivery') : ''"></span>
+            <h4 class="text-white font-extrabold text-base mt-2" x-text="qrisOrder ? '#' + qrisOrder.id + ' - ' + qrisOrder.customerName : ''"></h4>
+            <p class="text-xs text-slate-400 mt-1" x-text="qrisOrder ? (qrisOrder.type === 'dine-in' ? 'Nomor Meja: ' + qrisOrder.tableNumber : 'Pengiriman Delivery') : ''"></p>
+          </div>
+
+          <!-- QR Code Box -->
+          <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-inner flex items-center justify-center">
+            <img 
+              :src="qrisQrUrl" 
+              alt="QRIS QR Code" 
+              class="w-48 h-48 object-contain"
+            />
+          </div>
+
+          <!-- Price & Locked Amount -->
+          <div class="text-center">
+            <span class="text-xs font-black text-brand-500 bg-brand-500/10 border border-brand-500/20 px-4 py-1.5 rounded-full uppercase tracking-wider block w-fit mx-auto">
+              Total: Rp <span x-text="qrisOrder ? parseFloat(qrisOrder.totalPrice).toLocaleString('id-ID') : ''"></span>
+            </span>
+            <p class="text-[9px] text-slate-500 mt-2">Nominal terenkripsi secara dinamis. Pelanggan cukup scan tanpa menginput angka pembayaran.</p>
+          </div>
+
+          <!-- Pembayaran Tunai (Cash) Section -->
+          <div class="w-full border-t border-slate-800/80 pt-4 mt-2">
+            <label class="block text-left text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5"><i class="fa-solid fa-money-bill-wave text-brand-500 mr-1.5"></i>Pembayaran Tunai (Cash)</label>
+            <div class="space-y-3">
+              <div class="flex gap-2">
+                <span style="background-color: #0b1120 !important;" class="border border-slate-800/60 text-slate-400 text-xs px-3 py-2.5 rounded-xl flex items-center justify-center font-bold">Rp</span>
+                <input 
+                  type="number" 
+                  x-model.number="cashReceived"
+                  placeholder="Masukkan uang diterima..." 
+                  style="background-color: #0b1120 !important; color: #ffffff !important;"
+                  class="w-full border border-slate-800/60 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-brand-500 font-bold"
+                />
+              </div>
+              <!-- Change Calculation -->
+              <template x-if="cashReceived > 0">
+                <div class="flex justify-between items-center bg-dark-950/60 p-3 rounded-xl border border-slate-850 text-xs">
+                  <span class="text-slate-400 font-semibold">Uang Kembalian:</span>
+                  <span 
+                    class="font-black text-sm"
+                    :class="cashReceived >= qrisOrder.totalPrice ? 'text-emerald-400' : 'text-red-400'"
+                    x-text="cashReceived >= qrisOrder.totalPrice 
+                      ? 'Rp ' + parseFloat(cashReceived - qrisOrder.totalPrice).toLocaleString('id-ID')
+                      : 'Kurang: Rp ' + parseFloat(qrisOrder.totalPrice - cashReceived).toLocaleString('id-ID')"
+                  ></span>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div x-show="!qrisLoading && !qrisError && qrisOrder" class="p-6 border-t border-slate-800 bg-dark-850 flex flex-col gap-3 w-full">
+        <div class="flex gap-2 w-full">
+          <button 
+            @click="qrisModalOpen = false" 
+            class="flex-1 bg-dark-800 hover:bg-dark-750 text-slate-300 py-3 rounded-xl text-xs font-bold transition border border-slate-700/50 cursor-pointer"
+          >
+            Tutup
+          </button>
+          
+          <a 
+            :href="'/orders/' + (qrisOrder ? qrisOrder.id : '') + '/print'"
+            target="_blank"
+            class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-lg shadow-blue-600/15 cursor-pointer"
+          >
+            <i class="fa-solid fa-print"></i> Struk
+          </a>
+        </div>
+        
+        <form :action="'/orders/' + (qrisOrder ? qrisOrder.id : '') + '/status'" method="POST" class="w-full">
+          <input type="hidden" name="status" value="paid">
+          <button 
+            type="submit" 
+            class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/15 cursor-pointer"
+          >
+            <i class="fa-solid fa-cash-register"></i> Tandai Lunas
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<%- include('../partials/footer') %>

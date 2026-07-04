@@ -1,0 +1,196 @@
+<%- include('../../partials/header') %>
+<%- include('../../partials/navbar') %>
+
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow space-y-6">
+
+  <!-- Breadcrumbs & Header -->
+  <div class="space-y-2">
+    <a href="/admin/menus" class="text-xs text-brand-500 hover:underline">
+      <i class="fa-solid fa-arrow-left mr-1"></i> Kembali ke Daftar Menu
+    </a>
+    <h2 class="text-3xl font-extrabold text-white">
+      <%= menu ? 'Edit Menu Seafood' : 'Tambah Menu Baru' %>
+    </h2>
+    <p class="text-slate-400 text-sm">
+      <%= menu ? 'Ubah informasi detail masakan seafood yang sudah ada.' : 'Masukkan menu hidangan laut baru ke dalam daftar sajian resto.' %>
+    </p>
+  </div>
+
+  <!-- Form Card -->
+  <div class="glass-card border border-slate-700/50 rounded-3xl p-6 sm:p-8 shadow-2xl">
+    
+    <form 
+      action="<%= menu ? '/admin/menus/' + menu.id : '/admin/menus' %>" 
+      method="POST" 
+      enctype="multipart/form-data" 
+      class="space-y-6"
+    >
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        
+        <!-- Menu Name -->
+        <div class="sm:col-span-2">
+          <label for="name" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Nama Menu *</label>
+          <input 
+            type="text" 
+            name="name" 
+            id="name" 
+            required 
+            value="<%= menu ? menu.name : '' %>"
+            placeholder="Contoh: Kepiting Bakar Madu Premium"
+            class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition"
+          />
+        </div>
+
+        <!-- Category -->
+        <div>
+          <label for="category" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Kategori Hidangan *</label>
+          <select 
+            name="category" 
+            id="category" 
+            required
+            class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition"
+          >
+            <% 
+              const rawCats = settings.resto_categories || 'Ikan:ikan, Kepiting:kepiting, Udang:udang, Cumi-Cumi:cumi, Kerang:kerang, Minuman:minuman, Lainnya:lainnya';
+              const cats = rawCats.split(',').map(c => {
+                const parts = c.trim().split(':');
+                const label = parts[0].trim();
+                const val = parts[1] ? parts[1].trim() : label.toLowerCase().replace(/\s+/g, '-');
+                return { val, label };
+              });
+            %>
+            <% cats.forEach(c => { %>
+              <option value="<%= c.val %>" <%= menu && menu.category === c.val ? 'selected' : '' %>><%= c.label %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <!-- Price Type -->
+        <div>
+          <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Satuan Tipe Harga *</label>
+          <div class="grid grid-cols-2 gap-4">
+            <label class="flex items-center justify-center gap-2 border border-slate-700 bg-dark-900 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-dark-800 transition cursor-pointer select-none">
+              <input 
+                type="radio" 
+                name="priceType" 
+                value="pcs" 
+                <%= !menu || menu.priceType === 'pcs' ? 'checked' : '' %>
+                class="accent-brand-500"
+              />
+              Per Ekor / Pcs
+            </label>
+            <label class="flex items-center justify-center gap-2 border border-slate-700 bg-dark-900 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-dark-800 transition cursor-pointer select-none">
+              <input 
+                type="radio" 
+                name="priceType" 
+                value="kg" 
+                <%= menu && menu.priceType === 'kg' ? 'checked' : '' %>
+                class="accent-brand-500"
+              />
+              Per Kilogram (Kg)
+            </label>
+          </div>
+        </div>
+
+        <!-- Price (Rp) -->
+        <div>
+          <label for="price" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Harga Satuan (Rupiah) *</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 text-sm">Rp</span>
+            <input 
+              type="number" 
+              name="price" 
+              id="price" 
+              required 
+              min="0"
+              value="<%= menu ? menu.price : '' %>"
+              placeholder="Contoh: 150000"
+              class="w-full bg-dark-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition"
+            />
+          </div>
+        </div>
+
+        <!-- Availability Status -->
+        <div>
+          <label for="isAvailable" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Status Menu *</label>
+          <select 
+            name="isAvailable" 
+            id="isAvailable" 
+            required
+            class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition"
+          >
+            <option value="true" <%= !menu || menu.isAvailable ? 'selected' : '' %>>Tersedia (Aktif)</option>
+            <option value="false" <%= menu && !menu.isAvailable ? 'selected' : '' %>>Habis (Kosong)</option>
+          </select>
+        </div>
+
+        <!-- Description -->
+        <div class="sm:col-span-2">
+          <label for="description" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Deskripsi Masakan</label>
+          <textarea 
+            name="description" 
+            id="description" 
+            placeholder="Masukkan keterangan rasa, porsi, atau bahan olahan..."
+            rows="3"
+            class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition"
+          ><%= menu ? menu.description : '' %></textarea>
+        </div>
+
+        <!-- Image Upload -->
+        <div class="sm:col-span-2" x-data="{ preview: null }">
+          <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Foto Masakan (Lokal Upload)</label>
+          <div class="flex items-center gap-6 p-4 bg-dark-900/60 rounded-2xl border border-slate-700/50">
+            <!-- Current Image / Preview -->
+            <div class="w-24 h-20 rounded-xl overflow-hidden bg-dark-800 border border-slate-700/40 flex-shrink-0">
+              <template x-if="preview">
+                <img :src="preview" class="w-full h-full object-cover"/>
+              </template>
+              <template x-if="!preview">
+                <img 
+                  src="<%= menu ? menu.image : '/images/default-logo.png' %>" 
+                  class="w-full h-full object-cover"
+                  onerror="this.src='/images/default-logo.png'"
+                />
+              </template>
+            </div>
+            
+            <!-- File Input -->
+            <div class="flex-grow">
+              <input 
+                type="file" 
+                name="image" 
+                id="image"
+                accept="image/*"
+                @change="const file = $event.target.files[0]; if (file) { preview = URL.createObjectURL(file) }"
+                class="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-brand-500/10 file:text-brand-500 hover:file:bg-brand-500/20 file:cursor-pointer cursor-pointer"
+              />
+              <p class="text-[10px] text-slate-500 mt-2">Mendukung format PNG, JPG, JPEG, WEBP. Maksimal ukuran file 5MB.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action buttons -->
+      <div class="flex justify-end gap-3 border-t border-slate-800 pt-6">
+        <a 
+          href="/admin/menus" 
+          class="bg-dark-850 border border-slate-700 text-slate-300 px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-dark-700 transition"
+        >
+          Batal
+        </a>
+        <button 
+          type="submit" 
+          class="bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-brand-500/20 hover:shadow-brand-500/30 transition cursor-pointer"
+        >
+          <%= menu ? 'Simpan Perubahan' : 'Tambah Menu' %>
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+
+<%- include('../../partials/footer') %>

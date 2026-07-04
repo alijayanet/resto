@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Struk Pesanan #<%= order.id %> - <%= settings.resto_name || 'Resto Seafood' %></title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      body {
+        background-color: #fff;
+        color: #000;
+        padding: 0;
+        margin: 0;
+      }
+    }
+    /* Standard 58mm thermal receipt styling */
+    .receipt-container {
+      width: 80mm;
+      max-width: 100%;
+      margin: 0 auto;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .dashed-line {
+      border-top: 1px dashed #000;
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 py-6 px-4">
+
+  <!-- Control Buttons (Hidden during Print) -->
+  <div class="max-w-md mx-auto mb-6 no-print flex gap-3">
+    <button 
+      onclick="window.print()" 
+      class="flex-1 bg-brand-600 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+      Cetak Struk
+    </button>
+    <a 
+      href="https://wa.me/?text=<%= encodeURIComponent(`*STRUK PEMBAYARAN - ${settings.resto_name || 'Resto Seafood'}*\nID Pesanan: #${order.id}\nNama: ${order.customerName}\nMeja: ${order.tableNumber || '-'}\nTotal: Rp ${parseFloat(order.totalPrice).toLocaleString('id-ID')}\nStatus: ${order.status === 'paid' ? 'LUNAS (QRIS)' : 'BELUM DIBAYAR'}\nDetail lengkap: http://${req => req.get('host')}/order/success/${order.id}`) %>"
+      target="_blank"
+      class="flex-1 bg-emerald-600 hover:bg-emerald-750 text-white py-2.5 rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+    >
+      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.458L0 24zm6.27-3.79c1.677.995 3.348 1.54 5.69 1.542 5.518 0 10.01-4.494 10.014-10.018.002-2.674-1.04-5.188-2.932-7.081-1.892-1.893-4.407-2.935-7.087-2.937-5.523 0-10.016 4.494-10.02 10.02-.001 2.235.58 4.417 1.684 6.32l-.994 3.63 3.655-.956zm11.37-7.234c.3-.15.178-.225.178-.225.225-.375.375-.75.375-1.125s-.15-.75-.375-.975c-.3-.3-.9-.6-1.5-.75s-1.05.075-1.35.375-.45.675-.6.9c-.15.225-.3.45-.6.375-.3-.075-.75-.3-1.35-.9-.6-.6-.975-1.125-1.275-1.575s-.075-.675.075-.9c.15-.225.375-.45.525-.675.15-.225.225-.45.3-.675.075-.225 0-.45-.075-.675s-.375-.975-.525-1.35c-.15-.375-.375-.75-.6-.975-.225-.225-.45-.3-.675-.3-.225 0-.45.075-.675.225-.225.15-.375.375-.525.6-.15.225-.3.45-.375.675-.075.225-.15.45-.15.675 0 .225.075.45.15.675s.225.45.375.675c.15.225.3.45.45.675.15.225.375.45.6.675s.45.375.675.6c.225.225.45.375.675.525s.45.3.675.45c.225.15.45.225.675.3.225.075.45.075.675.075s.45-.075.675-.15c.225-.075.45-.225.6-.375.15-.15.375-.375.525-.6.15-.225.3-.45.375-.675.075-.225.075-.45.075-.675z"/></svg>
+      Kirim WA
+    </button>
+    <button 
+      onclick="window.close()" 
+      class="bg-dark-800 bg-slate-800 hover:bg-slate-900 text-slate-200 px-4 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer"
+    >
+      Tutup
+    </button>
+  </div>
+
+  <!-- Receipt Body (Print area) -->
+  <div class="receipt-container bg-white p-4 border border-slate-200 shadow-sm text-black">
+    <!-- Header -->
+    <div class="text-center">
+      <h1 class="font-bold text-sm uppercase"><%= settings.resto_name || 'RESTO SEAFOOD' %></h1>
+      <p class="text-[10px] mt-0.5"><%= settings.resto_address || 'Kawasan Seafood Modern' %></p>
+      <p class="text-[10px]">Telp: <%= settings.resto_whatsapp || '081234567890' %></p>
+      <% if (settings.hours_weekday) { %>
+        <p class="text-[9px] text-slate-500 mt-0.5"><%= settings.hours_weekday %></p>
+      <% } %>
+    </div>
+
+    <div class="dashed-line"></div>
+
+    <!-- Metadata -->
+    <table class="w-full text-[10px]">
+      <tr>
+        <td class="w-24">No. Pesanan</td>
+        <td>: #<%= order.id %></td>
+      </tr>
+      <tr>
+        <td>Waktu</td>
+        <td>: <%= new Date(order.createdAt).toLocaleDateString('id-ID') %> <%= new Date(order.createdAt).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) %></td>
+      </tr>
+      <tr>
+        <td>Pelanggan</td>
+        <td class="uppercase">: <%= order.customerName %></td>
+      </tr>
+      <tr>
+        <td>Layanan</td>
+        <td>: <%= order.type === 'dine-in' ? `DINE-IN (${order.tableNumber})` : 'DELIVERY (Kirim)' %></td>
+      </tr>
+    </table>
+
+    <div class="dashed-line"></div>
+
+    <!-- Items table -->
+    <table class="w-full text-[10px] border-collapse">
+      <thead>
+        <tr class="text-left font-bold border-b border-black">
+          <th class="py-1">Menu</th>
+          <th class="py-1 text-center">Qty</th>
+          <th class="py-1 text-right">Harga</th>
+          <th class="py-1 text-right">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% order.items.forEach(item => { %>
+          <tr class="align-top">
+            <td class="py-1.5 pr-1">
+              <%= item.menu.name %>
+              <% if (item.notes) { %>
+                <span class="block text-[8px] italic text-slate-600">- Catatan: <%= item.notes %></span>
+              <% } %>
+            </td>
+            <td class="py-1.5 text-center"><%= item.quantity %></td>
+            <td class="py-1.5 text-right"><%= parseFloat(item.price).toLocaleString('id-ID') %></td>
+            <td class="py-1.5 text-right"><%= (parseFloat(item.price) * item.quantity).toLocaleString('id-ID') %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+
+    <div class="dashed-line"></div>
+
+    <!-- Total calculations -->
+    <table class="w-full text-[11px] font-bold">
+      <tr>
+        <td class="text-right py-0.5 pr-4">Total Belanja:</td>
+        <td class="text-right py-0.5 w-24">Rp <%= parseFloat(order.totalPrice).toLocaleString('id-ID') %></td>
+      </tr>
+      <tr>
+        <td class="text-right py-0.5 pr-4">Pembayaran:</td>
+        <td class="text-right py-0.5 uppercase"><%= order.status === 'paid' ? 'QRIS LUNAS' : 'BELUM BAYAR' %></td>
+      </tr>
+    </table>
+
+    <div class="dashed-line"></div>
+
+    <!-- Footer message -->
+    <div class="text-center text-[10px] mt-4 space-y-1">
+      <p class="font-bold">TERIMA KASIH ATAS KUNJUNGAN ANDA</p>
+      <p class="text-[9px] text-slate-600">Silakan berkunjung kembali!</p>
+    </div>
+  </div>
+
+  <script>
+    // Auto trigger print dialogue on load
+    window.onload = function() {
+      // Small timeout to allow css render
+      setTimeout(function() {
+        window.print();
+      }, 500);
+    }
+  </script>
+</body>
+</html>

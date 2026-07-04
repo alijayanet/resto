@@ -1,0 +1,408 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow space-y-6">
+
+  <!-- Header -->
+  <div>
+    <h2 class="text-3xl font-extrabold text-white">Pengaturan Restoran</h2>
+    <p class="text-slate-400 text-sm mt-1">Ubah nama resto, nomor WhatsApp notifikasi, alamat, logo, serta mode operasional.</p>
+  </div>
+
+  <!-- Messages -->
+  <%- include('../partials/alerts') %>
+
+  <!-- Form Layout -->
+  <div class="glass-card border border-slate-700/50 rounded-3xl p-6 sm:p-8 shadow-2xl">
+    
+    <form 
+      action="/admin/settings" 
+      method="POST" 
+      enctype="multipart/form-data" 
+      class="space-y-6"
+      x-data="{ preview: null }"
+    >
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        
+        <!-- Resto Name -->
+        <div>
+          <label for="resto_name" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Nama Restoran *</label>
+          <input 
+            type="text" 
+            name="resto_name" 
+            id="resto_name" 
+            required 
+            value="<%= settings.resto_name || '' %>"
+            placeholder="Contoh: Dermaga Seafood"
+            class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500"
+          />
+        </div>
+
+        <!-- WhatsApp Number -->
+        <div>
+          <label for="resto_whatsapp" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Nomor WhatsApp Notifikasi *</label>
+          <input 
+            type="text" 
+            name="resto_whatsapp" 
+            id="resto_whatsapp" 
+            required 
+            value="<%= settings.resto_whatsapp || '' %>"
+            placeholder="Gunakan kode negara, contoh: 6281234567890"
+            class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500"
+          />
+          <p class="text-[10px] text-slate-500 mt-1">Nomor tujuan untuk notifikasi checkout pelanggan. Awali dengan kode negara (misal 62 untuk Indonesia).</p>
+        </div>
+
+        <!-- Mode Toggle (Catalog vs Ordering) -->
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Fungsi Website Utama *</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Option 1: Ordering Enabled -->
+            <label class="flex items-start gap-3 border border-slate-700 bg-dark-900 p-4 rounded-2xl cursor-pointer hover:bg-dark-800 transition select-none">
+              <input 
+                type="radio" 
+                name="allow_ordering" 
+                value="true" 
+                <%= settings.allow_ordering === 'true' ? 'checked' : '' %>
+                class="accent-brand-500 mt-1"
+              />
+              <div>
+                <p class="text-sm font-semibold text-white">Online Ordering & Katalog</p>
+                <p class="text-slate-500 text-[10px] mt-0.5">Pelanggan bisa langsung memesan dari website, mengisi nomor meja, dan mengirimkannya ke kasir/dapur.</p>
+              </div>
+            </label>
+            
+            <!-- Option 2: Catalog Only -->
+            <label class="flex items-start gap-3 border border-slate-700 bg-dark-900 p-4 rounded-2xl cursor-pointer hover:bg-dark-800 transition select-none">
+              <input 
+                type="radio" 
+                name="allow_ordering" 
+                value="false" 
+                <%= settings.allow_ordering !== 'true' ? 'checked' : '' %>
+                class="accent-brand-500 mt-1"
+              />
+              <div>
+                <p class="text-sm font-semibold text-white">Katalog Digital Saja</p>
+                <p class="text-slate-500 text-[10px] mt-0.5">Website hanya berfungsi sebagai menu digital interaktif. Tombol checkout/pesan dimatikan.</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Address -->
+        <div class="sm:col-span-2">
+          <label for="resto_address" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Alamat Restoran *</label>
+          <textarea 
+            name="resto_address" 
+            id="resto_address" 
+            required
+            rows="3"
+            placeholder="Masukkan alamat lokasi resto lengkap..."
+            class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500"
+          ><%= settings.resto_address || '' %></textarea>
+        </div>
+
+        <!-- Hero Section Settings -->
+        <div class="sm:col-span-2 border-t border-slate-800/80 pt-6 mt-4">
+          <h4 class="text-white font-bold text-sm mb-4"><i class="fa-solid fa-rectangle-ad text-brand-500 mr-2"></i>Pengaturan Hero Section (Halaman Utama)</h4>
+        </div>
+
+        <!-- Hero Title -->
+        <div class="sm:col-span-2">
+          <label for="hero_title" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Judul Utama (Hero Title)</label>
+          <input 
+            type="text" 
+            name="hero_title" 
+            id="hero_title" 
+            value="<%= settings.hero_title || '' %>"
+            placeholder="Contoh: Kelezatan Seafood Segar Terbaik di Pesisir Jakarta"
+            class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500"
+          />
+        </div>
+
+        <!-- Hero Subtitle -->
+        <div class="sm:col-span-2">
+          <label for="hero_subtitle" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Sub-judul / Deskripsi Hero</label>
+          <textarea 
+            name="hero_subtitle" 
+            id="hero_subtitle" 
+            rows="2"
+            placeholder="Masukkan deskripsi singkat untuk diletakkan di bawah judul utama..."
+            class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500"
+          ><%= settings.hero_subtitle || '' %></textarea>
+        </div>
+
+        <!-- Resto Details Settings -->
+        <div class="sm:col-span-2 border-t border-slate-800/80 pt-6 mt-4">
+          <h4 class="text-white font-bold text-sm mb-4"><i class="fa-solid fa-circle-info text-brand-500 mr-2"></i>Pengaturan Informasi & Jam Buka (Footer)</h4>
+        </div>
+
+        <!-- About Text -->
+        <div class="sm:col-span-2">
+          <label for="about_text" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Deskripsi Singkat Restoran (About Us)</label>
+          <textarea 
+            name="about_text" 
+            id="about_text" 
+            rows="2"
+            placeholder="Jelaskan mengenai keistimewaan resto Anda..."
+            class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500"
+          ><%= settings.about_text || '' %></textarea>
+        </div>
+
+        <!-- Hours Weekday -->
+        <div>
+          <label for="hours_weekday" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Jam Buka Hari Kerja (Senin - Jumat)</label>
+          <input 
+            type="text" 
+            name="hours_weekday" 
+            id="hours_weekday" 
+            value="<%= settings.hours_weekday || '' %>"
+            placeholder="Contoh: 11.00 - 22.00 WIB"
+            class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500"
+          />
+        </div>
+
+        <!-- Hours Weekend -->
+        <div>
+          <label for="hours_weekend" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Jam Buka Akhir Pekan (Sabtu - Minggu)</label>
+          <input 
+            type="text" 
+            name="hours_weekend" 
+            id="hours_weekend" 
+            value="<%= settings.hours_weekend || '' %>"
+            placeholder="Contoh: 10.00 - 23.00 WIB"
+            class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500"
+          />
+        </div>
+
+        <!-- QRIS Payment Settings -->
+        <div class="sm:col-span-2 border-t border-slate-800/80 pt-6 mt-4">
+          <h4 class="text-white font-bold text-sm mb-4"><i class="fa-solid fa-qrcode text-brand-500 mr-2"></i>Pengaturan QRIS Dinamis (Nota Pembayaran)</h4>
+        </div>
+
+        <!-- QRIS Active Toggle -->
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Status Pembayaran QRIS Dinamis</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <label class="flex items-start gap-3 border border-slate-700 bg-dark-900 p-4 rounded-2xl cursor-pointer hover:bg-dark-800 transition select-none">
+              <input 
+                type="radio" 
+                name="qris_active" 
+                value="true" 
+                <%= settings.qris_active === 'true' ? 'checked' : '' %>
+                class="accent-brand-500 mt-1"
+              />
+              <div>
+                <p class="text-sm font-semibold text-white">Aktifkan QRIS Dinamis</p>
+                <p class="text-slate-500 text-[10px] mt-0.5">Tampilkan QR Code otomatis bermaterialkan total nominal di nota pemesanan sukses.</p>
+              </div>
+            </label>
+            
+            <label class="flex items-start gap-3 border border-slate-700 bg-dark-900 p-4 rounded-2xl cursor-pointer hover:bg-dark-800 transition select-none">
+              <input 
+                type="radio" 
+                name="qris_active" 
+                value="false" 
+                <%= settings.qris_active !== 'true' ? 'checked' : '' %>
+                class="accent-brand-500 mt-1"
+              />
+              <div>
+                <p class="text-sm font-semibold text-white">Nonaktifkan</p>
+                <p class="text-slate-500 text-[10px] mt-0.5">Sembunyikan QR Code di nota checkout.</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- QRIS Static Payload String -->
+        <div class="sm:col-span-2">
+          <label for="qris_payload" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">String QRIS Statis (Payload)</label>
+          <textarea 
+            name="qris_payload" 
+            id="qris_payload" 
+            rows="3"
+            placeholder="Contoh: 00020101021138510014ID..."
+            class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500"
+          ><%= settings.qris_payload || '' %></textarea>
+          <p class="text-[10px] text-slate-500 mt-1">Tempelkan data teks QRIS statis Anda. Karakter awal biasanya `000201...` dan diakhiri dengan checksum CRC. Sistem akan memodifikasi string ini secara dinamis sesuai total pesanan pelanggan.</p>
+        </div>
+
+        <!-- QRIS Image Upload with AJAX Decode Button -->
+        <div class="sm:col-span-2" x-data="{ 
+          loading: false, 
+          errorMessage: '', 
+          async handleDecode() {
+            const fileInput = document.getElementById('qris_image');
+            if (!fileInput.files || fileInput.files.length === 0) {
+              this.errorMessage = 'Silakan pilih file gambar QRIS terlebih dahulu!';
+              return;
+            }
+            
+            this.loading = true;
+            this.errorMessage = '';
+            
+            const formData = new FormData();
+            formData.append('qris_image', fileInput.files[0]);
+            
+            try {
+              const res = await fetch('/admin/qris/decode', {
+                method: 'POST',
+                body: formData
+              });
+              const data = await res.json();
+              if (data.success) {
+                document.getElementById('qris_payload').value = data.payload;
+                alert('QRIS Berhasil diekstrak! Teks payload telah dimasukkan ke kolom di atas.');
+              } else {
+                this.errorMessage = data.error;
+              }
+            } catch (err) {
+              this.errorMessage = 'Koneksi ke server gagal atau terjadi kesalahan.';
+            } finally {
+              this.loading = false;
+            }
+          }
+        }">
+          <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Unggah Gambar QRIS untuk Ekstrak Payload</label>
+          <div class="p-4 bg-dark-900/60 rounded-2xl border border-slate-700/50 space-y-4">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+              <input 
+                type="file" 
+                id="qris_image"
+                accept="image/*"
+                class="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-brand-500/10 file:text-brand-500 hover:file:bg-brand-500/20 file:cursor-pointer cursor-pointer"
+              />
+              <button 
+                type="button" 
+                @click="handleDecode()"
+                :disabled="loading"
+                class="bg-brand-600 hover:bg-brand-500 disabled:bg-dark-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 flex-shrink-0 cursor-pointer"
+              >
+                <template x-if="loading">
+                  <i class="fa-solid fa-spinner animate-spin"></i>
+                </template>
+                <template x-if="!loading">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </template>
+                <span x-text="loading ? 'Memproses...' : 'Ekstrak QRIS'"></span>
+              </button>
+            </div>
+            
+            <p class="text-[10px] text-slate-500">Pilih file gambar QR code QRIS statis Anda, lalu klik "Ekstrak QRIS" untuk mengubahnya menjadi teks payload secara otomatis sebelum menyimpan pengaturan.</p>
+            
+            <!-- Error message inside section -->
+            <div x-show="errorMessage" x-transition class="bg-red-500/15 border border-red-500/25 text-red-400 px-3 py-2 rounded-xl text-[10px]" style="display: none;" x-text="errorMessage"></div>
+          </div>
+        </div>
+
+        <!-- Web Content Customization -->
+        <div class="sm:col-span-2 border-t border-slate-800/80 pt-6 mt-4">
+          <h4 class="text-white font-bold text-sm mb-4"><i class="fa-solid fa-pen-to-square text-brand-500 mr-2"></i>Kustomisasi Judul Konten & Kategori Resto</h4>
+        </div>
+
+        <!-- Menu Section Title -->
+        <div>
+          <label for="menu_title" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Judul Bagian Menu Utama</label>
+          <input 
+            type="text" 
+            name="menu_title" 
+            id="menu_title" 
+            value="<%= settings.menu_title || '' %>"
+            placeholder="Contoh: Koleksi Menu Hidangan Laut"
+            class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500"
+          />
+        </div>
+
+        <!-- Menu Section Subtitle -->
+        <div>
+          <label for="menu_subtitle" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Sub-Judul Bagian Menu Utama</label>
+          <input 
+            type="text" 
+            name="menu_subtitle" 
+            id="menu_subtitle" 
+            value="<%= settings.menu_subtitle || '' %>"
+            placeholder="Contoh: Pilih kategori seafood favorit Anda..."
+            class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500"
+          />
+        </div>
+
+        <!-- Search Input Placeholder -->
+        <div class="sm:col-span-2">
+          <label for="search_placeholder" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Placeholder Kolom Pencarian Menu</label>
+          <input 
+            type="text" 
+            name="search_placeholder" 
+            id="search_placeholder" 
+            value="<%= settings.search_placeholder || '' %>"
+            placeholder="Contoh: Cari masakan seafood..."
+            class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500"
+          />
+        </div>
+
+        <!-- Dynamic Resto Categories -->
+        <div class="sm:col-span-2">
+          <label for="resto_categories" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Daftar Kategori Resto (Format: Label:value, dipisahkan koma)</label>
+          <input 
+            type="text" 
+            name="resto_categories" 
+            id="resto_categories" 
+            value="<%= settings.resto_categories || '' %>"
+            placeholder="Contoh: Ikan:ikan, Kepiting:kepiting, Udang:udang, Minuman:minuman, Lainnya:lainnya"
+            class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500"
+          />
+          <p class="text-[10px] text-slate-500 mt-1.5">Masukkan daftar kategori hidangan Anda. Pisahkan dengan koma. Gunakan format <strong>Label:value</strong> agar Anda dapat merubah nama tampilan kategori tanpa memengaruhi relasi menu yang ada di database.</p>
+        </div>
+
+        <!-- Logo Upload -->
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Logo Restoran</label>
+          <div class="flex items-center gap-6 p-4 bg-dark-900/60 rounded-2xl border border-slate-700/50">
+            <!-- Thumbnail preview -->
+            <div class="w-16 h-16 rounded-xl bg-dark-850 border border-slate-700/40 overflow-hidden flex items-center justify-center p-2 flex-shrink-0">
+              <template x-if="preview">
+                <img :src="preview" class="w-full h-full object-contain"/>
+              </template>
+              <template x-if="!preview">
+                <!-- Check if logo has custom image uploaded, else show icon -->
+                <% if (settings.resto_logo && settings.resto_logo !== '/images/default-logo.png') { %>
+                  <img src="<%= settings.resto_logo %>" class="w-full h-full object-contain" onerror="this.style.display='none'"/>
+                <% } else { %>
+                  <i class="fa-solid fa-shrimp text-brand-500 text-3xl"></i>
+                <% } %>
+              </template>
+            </div>
+            
+            <!-- File Input -->
+            <div class="flex-grow">
+              <input 
+                type="file" 
+                name="logo" 
+                id="logo"
+                accept="image/*"
+                @change="const file = $event.target.files[0]; if (file) { preview = URL.createObjectURL(file) }"
+                class="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-brand-500/10 file:text-brand-500 hover:file:bg-brand-500/20 file:cursor-pointer cursor-pointer"
+              />
+              <p class="text-[10px] text-slate-500 mt-2">Mendukung format PNG, JPG, JPEG, WEBP. Direkomendasikan logo transparan.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action buttons -->
+      <div class="flex justify-end gap-3 border-t border-slate-800 pt-6">
+        <button 
+          type="submit" 
+          class="bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-brand-500/20 hover:shadow-brand-500/30 transition cursor-pointer"
+        >
+          Simpan Pengaturan
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+
+<%- include('../partials/footer') %>

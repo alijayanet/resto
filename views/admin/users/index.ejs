@@ -1,0 +1,154 @@
+<%- include('../../partials/header') %>
+<%- include('../../partials/navbar') %>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow space-y-6">
+
+  <!-- Header -->
+  <div>
+    <h2 class="text-3xl font-extrabold text-white">Manajemen Akun Staff</h2>
+    <p class="text-slate-400 text-sm mt-1">Daftarkan akun kasir/pelayan baru atau hapus staff yang sudah tidak aktif.</p>
+  </div>
+
+  <!-- Messages -->
+  <%- include('../../partials/alerts') %>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    
+    <!-- Left Column: Add Staff Form -->
+    <div class="lg:col-span-4 glass-card border border-slate-700/50 rounded-3xl p-6 shadow-xl space-y-4">
+      <h3 class="text-white font-bold text-lg border-b border-slate-800 pb-3">Daftarkan Staff Baru</h3>
+      
+      <form action="/admin/users" method="POST" class="space-y-4">
+        <!-- Full Name -->
+        <div>
+          <label for="name" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Nama Lengkap</label>
+          <input 
+            type="text" 
+            name="name" 
+            id="name" 
+            required 
+            placeholder="Contoh: Ahmad Maulana"
+            class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-650 focus:outline-none focus:border-brand-500"
+          />
+        </div>
+
+        <!-- Username -->
+        <div>
+          <label for="username" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Username Login</label>
+          <input 
+            type="text" 
+            name="username" 
+            id="username" 
+            required 
+            placeholder="Contoh: ahmad_resto"
+            class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-650 focus:outline-none focus:border-brand-500"
+          />
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label for="password" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Password</label>
+          <input 
+            type="password" 
+            name="password" 
+            id="password" 
+            required 
+            placeholder="Masukkan password akun..."
+            class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-650 focus:outline-none focus:border-brand-500"
+          />
+        </div>
+
+        <!-- Role -->
+        <div>
+          <label for="role" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Role / Wewenang</label>
+          <select 
+            name="role" 
+            id="role" 
+            required
+            class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-500"
+          >
+            <option value="waiter">Pelayan / Kasir / Dapur</option>
+            <option value="admin">Administrator (Akses Penuh)</option>
+          </select>
+        </div>
+
+        <!-- Submit -->
+        <button 
+          type="submit"
+          class="w-full bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-600 text-white py-3 rounded-xl text-xs font-bold shadow-lg shadow-brand-500/20 transition cursor-pointer"
+        >
+          <i class="fa-solid fa-user-plus mr-1"></i> Daftarkan Akun
+        </button>
+      </form>
+    </div>
+
+    <!-- Right Column: Staff List Table -->
+    <div class="lg:col-span-8 glass-card border border-slate-700/50 rounded-3xl overflow-hidden shadow-xl">
+      <div class="p-5 border-b border-slate-800/80 bg-dark-800 flex justify-between items-center">
+        <h3 class="text-white font-bold text-lg">Daftar Akun Aktif</h3>
+        <span class="text-slate-400 text-xs">Total: <%= users.length %> staff</span>
+      </div>
+      
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-dark-800/50 border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
+              <th class="px-6 py-4">Nama Lengkap</th>
+              <th class="px-6 py-4">Username</th>
+              <th class="px-6 py-4">Wewenang / Role</th>
+              <th class="px-6 py-4 text-right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/80">
+            <% users.forEach(s => { %>
+              <tr class="hover:bg-dark-800/30 transition-colors">
+                
+                <!-- Name -->
+                <td class="px-6 py-4 font-bold text-white whitespace-nowrap"><%= s.name %></td>
+                
+                <!-- Username -->
+                <td class="px-6 py-4 text-slate-300 font-medium whitespace-nowrap">@<%= s.username %></td>
+                
+                <!-- Role -->
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span 
+                    class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full"
+                    :class="'<%= s.role %>' === 'admin' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-brand-500/10 text-brand-400 border border-brand-500/20'"
+                  >
+                    <%= s.role %>
+                  </span>
+                </td>
+
+                <!-- Action delete -->
+                <td class="px-6 py-4 text-right whitespace-nowrap">
+                  <% if (s.id == user.id) { %>
+                    <span class="text-slate-500 italic text-[10px]">Akun Anda Aktif</span>
+                  <% } else { %>
+                    <form 
+                      action="/admin/users/<%= s.id %>/delete" 
+                      method="POST" 
+                      class="inline"
+                      onsubmit="return confirm('Apakah Anda yakin ingin menghapus akun staff ini?')"
+                    >
+                      <button 
+                        type="submit"
+                        class="bg-dark-900 border border-slate-700/60 hover:bg-red-500/10 text-slate-400 hover:text-red-400 p-2 rounded-lg transition cursor-pointer"
+                      >
+                        <i class="fa-solid fa-user-minus"></i>
+                      </button>
+                    </form>
+                  <% } %>
+                </td>
+
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<%- include('../../partials/footer') %>

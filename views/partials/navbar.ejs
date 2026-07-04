@@ -1,0 +1,182 @@
+<nav class="glass-nav sticky top-0 z-40 w-full" x-data="{ mobileMenuOpen: false }">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16 sm:h-20">
+      
+      <!-- Brand Logo & Name -->
+      <div class="flex items-center">
+        <a href="/" class="flex items-center space-x-3 group">
+          <div class="bg-gradient-to-tr from-brand-500 to-accent-500 p-2 rounded-xl shadow-lg shadow-brand-500/20 group-hover:scale-105 transition-transform duration-300">
+            <i class="fa-solid fa-shrimp text-white text-xl sm:text-2xl"></i>
+          </div>
+          <span class="font-extrabold text-xl sm:text-2xl bg-gradient-to-r from-white via-slate-100 to-brand-100 bg-clip-text text-transparent tracking-wide">
+            <%= settings.resto_name || 'Dermaga Seafood' %>
+          </span>
+        </a>
+      </div>
+
+      <!-- Desktop Menu Links -->
+      <div class="hidden md:flex items-center space-x-6">
+        <% if (user) { %>
+          <!-- Staff/Admin Navigation -->
+          <span class="text-slate-400 text-sm">
+            <i class="fa-solid fa-circle text-emerald-500 text-xs mr-1 animate-pulse"></i> 
+            <%= user.name %> (<span class="capitalize text-slate-200 text-xs font-semibold px-2 py-0.5 bg-dark-700 rounded-full"><%= user.role %></span>)
+          </span>
+
+          <% if (user.role === 'admin') { %>
+            <a href="/admin/dashboard" class="text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-800 px-3 py-2 rounded-lg transition">
+              <i class="fa-solid fa-chart-line mr-1"></i> Dashboard
+            </a>
+            <a href="/admin/menus" class="text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-800 px-3 py-2 rounded-lg transition">
+              <i class="fa-solid fa-utensils mr-1"></i> Menu
+            </a>
+            <a href="/admin/users" class="text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-800 px-3 py-2 rounded-lg transition">
+              <i class="fa-solid fa-users mr-1"></i> Staff
+            </a>
+            <a href="/admin/settings" class="text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-800 px-3 py-2 rounded-lg transition">
+              <i class="fa-solid fa-sliders mr-1"></i> Pengaturan
+            </a>
+          <% } else if (user.role === 'waiter') { %>
+            <a href="/waiter/orders" class="text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-800 px-3 py-2 rounded-lg transition">
+              <i class="fa-solid fa-bell-concierge mr-1"></i> Antrean Pesanan
+            </a>
+          <% } %>
+          
+          <!-- Cart Button for Staff (Desktop) -->
+          <button 
+            @click="$dispatch('open-cart')"
+            class="relative bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-brand-500/20 hover:shadow-brand-500/30 transition flex items-center gap-2 cursor-pointer"
+          >
+            <i class="fa-solid fa-cart-shopping text-brand-500"></i>
+            <span>Keranjang Order</span>
+            <span 
+              x-show="$store.cart.count > 0"
+              x-text="$store.cart.count"
+              class="absolute -top-2 -right-2 bg-accent-500 text-dark-900 font-extrabold text-xs w-5 h-5 rounded-full flex items-center justify-center border-2 border-dark-900 animate-bounce-subtle"
+            ></span>
+          </button>
+          
+          <a href="/logout" class="text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 px-3 py-2 rounded-lg transition">
+            <i class="fa-solid fa-right-from-bracket"></i> Keluar
+          </a>
+
+        <% } else { %>
+          <!-- Public Customer Navigation -->
+          <a href="#menu-catalog" class="text-sm font-medium text-slate-300 hover:text-white transition">Menu Seafood</a>
+          <a href="#about-resto" class="text-sm font-medium text-slate-300 hover:text-white transition">Tentang Kami</a>
+          
+          <% if (settings.allow_ordering === 'true') { %>
+            <!-- Cart Trigger Button (Desktop) -->
+            <button 
+              @click="$dispatch('open-cart')"
+              class="relative bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-brand-500/20 hover:shadow-brand-500/30 transition flex items-center gap-2"
+            >
+              <i class="fa-solid fa-cart-shopping"></i>
+              <span>Keranjang</span>
+              <span 
+                x-show="$store.cart.count > 0"
+                x-text="$store.cart.count"
+                class="absolute -top-2 -right-2 bg-accent-500 text-dark-900 font-extrabold text-xs w-5 h-5 rounded-full flex items-center justify-center border-2 border-dark-900 animate-bounce-subtle"
+              ></span>
+            </button>
+          <% } %>
+
+          <a 
+            href="/login" 
+            class="text-sm font-semibold text-slate-400 hover:text-white bg-dark-800 hover:bg-dark-700 border border-slate-700/60 px-4 py-2 rounded-xl transition"
+          >
+            <i class="fa-solid fa-user-tie mr-1.5"></i>Staff Login
+          </a>
+        <% } %>
+      </div>
+
+      <!-- Mobile Menu Button & Cart Trigger -->
+      <div class="flex items-center space-x-3 md:hidden">
+        <% if (user || settings.allow_ordering === 'true') { %>
+          <!-- Cart Trigger (Mobile) -->
+          <button 
+            @click="$dispatch('open-cart')"
+            class="relative bg-brand-600 hover:bg-brand-500 text-white p-2.5 rounded-xl shadow-md transition flex items-center justify-center"
+          >
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span 
+              x-show="$store.cart.count > 0"
+              x-text="$store.cart.count"
+              class="absolute -top-2 -right-2 bg-accent-500 text-dark-900 font-extrabold text-[10px] w-5.5 h-5.5 rounded-full flex items-center justify-center border-2 border-dark-900"
+            ></span>
+          </button>
+        <% } %>
+
+        <button 
+          @click="mobileMenuOpen = !mobileMenuOpen"
+          class="bg-dark-800 border border-slate-700/60 text-slate-300 hover:text-white p-2.5 rounded-xl focus:outline-none transition"
+        >
+          <i class="fa-solid" :class="mobileMenuOpen ? 'fa-xmark' : 'fa-bars'"></i>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Mobile Drawer Menu -->
+  <div 
+    x-show="mobileMenuOpen"
+    x-transition:enter="transition ease-out duration-150"
+    x-transition:enter-start="opacity-0 -translate-y-2"
+    x-transition:enter-end="opacity-100 translate-y-0"
+    x-transition:leave="transition ease-in duration-100"
+    x-transition:leave-start="opacity-100 translate-y-0"
+    x-transition:leave-end="opacity-0 -translate-y-2"
+    class="md:hidden bg-dark-800/95 border-b border-slate-800"
+  >
+    <div class="px-4 pt-2 pb-6 space-y-3">
+      <% if (user) { %>
+        <!-- Mobile Logged-in Navigation -->
+        <div class="px-3 py-2 rounded-lg bg-dark-700/50 mb-4 border border-slate-700/30">
+          <p class="text-xs text-slate-400">Masuk sebagai:</p>
+          <p class="text-sm font-semibold text-slate-200"><%= user.name %></p>
+          <p class="text-xs capitalize text-brand-500 font-bold"><%= user.role %></p>
+        </div>
+
+        <% if (user.role === 'admin') { %>
+          <a href="/admin/dashboard" @click="mobileMenuOpen = false" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-300 hover:text-white hover:bg-dark-700">
+            <i class="fa-solid fa-chart-line mr-2 text-brand-500"></i> Dashboard Order
+          </a>
+          <a href="/admin/menus" @click="mobileMenuOpen = false" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-300 hover:text-white hover:bg-dark-700">
+            <i class="fa-solid fa-utensils mr-2 text-brand-500"></i> Kelola Menu
+          </a>
+          <a href="/admin/users" @click="mobileMenuOpen = false" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-300 hover:text-white hover:bg-dark-700">
+            <i class="fa-solid fa-users mr-2 text-brand-500"></i> Kelola Staff
+          </a>
+          <a href="/admin/settings" @click="mobileMenuOpen = false" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-300 hover:text-white hover:bg-dark-700">
+            <i class="fa-solid fa-sliders mr-2 text-brand-500"></i> Pengaturan Resto
+          </a>
+        <% } else if (user.role === 'waiter') { %>
+          <a href="/waiter/orders" @click="mobileMenuOpen = false" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-300 hover:text-white hover:bg-dark-700">
+            <i class="fa-solid fa-bell-concierge mr-2 text-brand-500"></i> Antrean Pesanan
+          </a>
+        <% } %>
+
+        <a href="/logout" class="block px-3 py-2.5 rounded-xl text-base font-medium text-red-400 hover:bg-red-500/10">
+          <i class="fa-solid fa-right-from-bracket mr-2"></i> Keluar
+        </a>
+
+      <% } else { %>
+        <!-- Mobile Public Navigation -->
+        <a href="#menu-catalog" @click="mobileMenuOpen = false" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-300 hover:text-white hover:bg-dark-700">
+          Menu Seafood
+        </a>
+        <a href="#about-resto" @click="mobileMenuOpen = false" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-300 hover:text-white hover:bg-dark-700">
+          Tentang Kami
+        </a>
+        
+        <a 
+          href="/login" 
+          class="block text-center mt-4 px-4 py-2.5 rounded-xl text-base font-semibold text-slate-300 bg-dark-700 hover:bg-dark-600 border border-slate-700"
+        >
+          <i class="fa-solid fa-user-tie mr-2 text-brand-500"></i> Staff Login
+        </a>
+      <% } %>
+    </div>
+  </div>
+</nav>
