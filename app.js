@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
@@ -28,7 +29,7 @@ app.use(express.json());
 
 // Session Configuration
 app.use(session({
-  secret: 'dermaga_seafood_secret_key_123!@#',
+  secret: process.env.SESSION_SECRET || 'dermaga_seafood_secret_key_123!@#',
   resave: false,
   saveUninitialized: false,
   cookie: {

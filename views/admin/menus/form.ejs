@@ -67,29 +67,21 @@
 
         <!-- Price Type -->
         <div>
-          <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Satuan Tipe Harga *</label>
-          <div class="grid grid-cols-2 gap-4">
-            <label class="flex items-center justify-center gap-2 border border-slate-700 bg-dark-900 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-dark-800 transition cursor-pointer select-none">
-              <input 
-                type="radio" 
-                name="priceType" 
-                value="pcs" 
-                <%= !menu || menu.priceType === 'pcs' ? 'checked' : '' %>
-                class="accent-brand-500"
-              />
-              Per Ekor / Pcs
-            </label>
-            <label class="flex items-center justify-center gap-2 border border-slate-700 bg-dark-900 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-dark-800 transition cursor-pointer select-none">
-              <input 
-                type="radio" 
-                name="priceType" 
-                value="kg" 
-                <%= menu && menu.priceType === 'kg' ? 'checked' : '' %>
-                class="accent-brand-500"
-              />
-              Per Kilogram (Kg)
-            </label>
-          </div>
+          <label for="priceType" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Satuan Tipe Harga *</label>
+          <select 
+            name="priceType" 
+            id="priceType" 
+            required
+            class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition"
+          >
+            <option value="pcs" <%= !menu || menu.priceType === 'pcs' ? 'selected' : '' %>>Pcs / Ekor / Biji</option>
+            <option value="kg" <%= menu && menu.priceType === 'kg' ? 'selected' : '' %>>Kilogram (Kg)</option>
+            <option value="porsi" <%= menu && menu.priceType === 'porsi' ? 'selected' : '' %>>Porsi</option>
+            <option value="bks" <%= menu && menu.priceType === 'bks' ? 'selected' : '' %>>Bungkus (Bks) / Pack</option>
+            <option value="btg" <%= menu && menu.priceType === 'btg' ? 'selected' : '' %>>Batang (Btg)</option>
+            <option value="btl" <%= menu && menu.priceType === 'btl' ? 'selected' : '' %>>Botol (Btl)</option>
+            <option value="lainnya" <%= menu && menu.priceType === 'lainnya' ? 'selected' : '' %>>Lainnya</option>
+          </select>
         </div>
 
         <!-- Price (Rp) -->

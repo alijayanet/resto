@@ -20,7 +20,7 @@ const Menu = sequelize.define('Menu', {
     allowNull: false
   },
   priceType: {
-    type: DataTypes.ENUM('kg', 'pcs'),
+    type: DataTypes.ENUM('kg', 'pcs', 'porsi', 'bks', 'btg', 'btl', 'lainnya'),
     allowNull: false,
     defaultValue: 'pcs'
   },
